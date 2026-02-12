@@ -1,0 +1,17 @@
+(library
+ (name llbuild)
+ (libraries libllbuild_c)
+ (modules llbuild) ; TODO: Figure this out
+ (foreign_stubs
+  (language c)
+  (names llbuild_stub) ; TODO: Figure this out
+  (flags :standard -O2 -Wall -Wextra)))
+
+(test
+ (name test)
+ (modules test)
+ (libraries llbuild)
+ (modes exe)
+ (flags
+  :standard
+  (:include ./config/flags.sexp)))

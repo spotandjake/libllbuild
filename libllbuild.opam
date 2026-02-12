@@ -1,0 +1,23 @@
+opam-version: "2.0"
+version: "6.1.1"
+synopsis: "Libllbuild packaged for OCaml"
+# maintainer: "" # TODO: Add maintainer email
+author: "Jake Follest"
+license: "Apache-2.0"
+homepage: "https://github.com/grain-lang/libllbuild"
+dev-repo: "git+https://github.com/grain-lang/libllbuild.git"
+bug-reports: "https://github.com/grain-lang/libllbuild/issues"
+build: [
+  [ "dune" "subst" ] {dev}
+  [ "dune" "build" "-p" name "-j" jobs ]
+]
+depends: [
+  "conf-cmake" {build}
+  "dune" {>= "3.0.0"}
+  "dune-configurator" {>= "3.0.0"}
+  "ocaml" {>= "5.0"}
+]
+depexts: [
+  ["gcc-g++"] { os-distribution = "cygwinports" }
+]
+x-maintenance-intent: ["(latest)"]

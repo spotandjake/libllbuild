@@ -1,0 +1,212 @@
+(library
+ (name libllbuild_c)
+ (public_name libllbuild.c)
+ (modes native)
+ (foreign_archives swift-llbuild)
+ (c_library_flags :standard -lstdc++ -lpthread -lcurses -lsqlite3) ; Ensure these make sense
+ (install_c_headers
+  llbuild
+  llbuild-defines
+  core
+  buildsystem
+  db
+  buildkey
+  buildvalue
+  ninja))
+
+(rule
+ (targets
+  llbuild.h
+  llbuild-defines.h
+  core.h
+  buildsystem.h
+  db.h
+  buildkey.h
+  buildvalue.h
+  ninja.h)
+ (deps
+  (source_tree swift-llbuild))
+ (action
+  (no-infer
+   (progn
+    (copy
+     swift-llbuild/products/libllbuild/include/llbuild/llbuild.h
+     llbuild.h)
+    (copy
+     swift-llbuild/products/libllbuild/include/llbuild/llbuild-defines.h
+     llbuild-defines.h)
+    (copy swift-llbuild/products/libllbuild/include/llbuild/core.h core.h)
+    (copy
+     swift-llbuild/products/libllbuild/include/llbuild/buildsystem.h
+     buildsystem.h)
+    (copy swift-llbuild/products/libllbuild/include/llbuild/db.h db.h)
+    (copy
+     swift-llbuild/products/libllbuild/include/llbuild/buildkey.h
+     buildkey.h)
+    (copy
+     swift-llbuild/products/libllbuild/include/llbuild/buildvalue.h
+     buildvalue.h)
+    (copy swift-llbuild/products/libllbuild/include/llbuild/ninja.h ninja.h)))))
+
+(rule
+ (targets libswift-llbuild.a)
+ (locks swift-llbuild)
+ (deps
+  (source_tree swift-llbuild))
+ (enabled_if
+  (and
+   (<> %{system} win32)
+   (<> %{system} win64)
+   (<> %{system} mingw)
+   (<> %{system} mingw64)))
+ (action
+  (no-infer
+   (progn
+    (run
+     cmake
+     -S
+     swift-llbuild
+     -B
+     swift-llbuild/build
+     -G
+     "Unix Makefiles"
+     "-DCMAKE_CXX_FLAGS=-Wno-unused-but-set-variable -Wno-unused-variable"
+     -DBUILD_TESTING=OFF
+     -DBUILD_SHARED_LIBS=OFF
+     -DCMAKE_BUILD_TYPE=Release
+     -DCMAKE_INSTALL_PREFIX=swift-llbuild/build)
+    (run cmake --build swift-llbuild/build --config Release -- -j4)
+    (bash
+     "cd swift-llbuild/build/lib && ar -x libllbuild.a && ar -x libllbuildBasic.a && ar -x libllbuildCore.a && ar -x libllbuildBuildSystem.a && ar -x libllbuildNinja.a && ar -x libllvmSupport.a && ar rcs libswift-llbuild-combined.a *.o")
+    (copy
+     swift-llbuild/build/lib/libswift-llbuild-combined.a
+     libswift-llbuild.a)))))
+
+(rule
+ (targets libswift-llbuild.a)
+ (locks swift-llbuild)
+ (deps
+  (source_tree swift-llbuild))
+ (enabled_if
+  (or
+   (= %{system} win32)
+   (= %{system} win64)
+   (= %{system} mingw)
+   (= %{system} mingw64)))
+ (action
+  (no-infer
+   (progn
+    (run
+     cmake
+     -S
+     swift-llbuild
+     -B
+     swift-llbuild/build
+     -G
+     "Unix Makefiles"
+     "-DCMAKE_CXX_FLAGS=-Wno-unused-but-set-variable -Wno-unused-variable"
+     -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc
+     -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++
+     "-DCMAKE_SYSTEM_NAME=Windows"
+     -DBUILD_TESTING=OFF
+     -DBUILD_SHARED_LIBS=OFF
+     -DCMAKE_BUILD_TYPE=Release
+     -DCMAKE_INSTALL_PREFIX=swift-llbuild/build)
+    (run cmake --build swift-llbuild/build --config Release -- -j4)
+    (bash
+     "cd swift-llbuild/build/lib && ar -x libllbuild.a && ar -x libllbuildBasic.a && ar -x libllbuildCore.a && ar -x libllbuildBuildSystem.a && ar -x libllbuildNinja.a && ar -x libllvmSupport.a && ar rcs libswift-llbuild-combined.a *.o")
+    (copy
+     swift-llbuild/build/lib/libswift-llbuild-combined.a
+     libswift-llbuild.a)))))
+
+; TODO: Is this right?
+
+; (rule
+;  (target dllswift-llbuild.so)
+;  (locks swift-llbuild)
+;  (deps
+;   (source_tree swift-llbuild))
+;  (enabled_if
+;   (= %{system} macosx))
+;  (action
+;   (no-infer
+;    (progn
+;     (run
+;      cmake
+;      -S
+;      swift-llbuild
+;      -B
+;      swift-llbuild/build-shared
+;      -G
+;      "Unix Makefiles"
+;      "-DCMAKE_CXX_FLAGS=-Wno-unused-but-set-variable -Wno-unused-variable"
+;      -DBUILD_TESTING=OFF
+;      -DBUILD_SHARED_LIBS=ON ; TODO: Validate this
+;      -DCMAKE_BUILD_TYPE=Release
+;      -DCMAKE_INSTALL_PREFIX=swift-llbuild/build-shared)
+;     (run cmake --build swift-llbuild/build-shared --config Release -- -j4)
+;     (copy swift-llbuild/build-shared/lib/libllbuild.dylib dllswift-llbuild.so)))))
+
+; (rule
+;  (target dllswift-llbuild.so)
+;  (locks swift-llbuild)
+;  (deps
+;   (source_tree swift-llbuild))
+;  (enabled_if
+;   (and
+;    (<> %{system} macosx)
+;    (<> %{system} mingw64)))
+;  (action
+;   (no-infer
+;    (progn
+;     (run
+;      cmake
+;      -S
+;      swift-llbuild
+;      -B
+;      swift-llbuild/build-shared
+;      -G
+;      "Unix Makefiles"
+;      "-DCMAKE_CXX_FLAGS=-Wno-unused-but-set-variable -Wno-unused-variable"
+;      -DBUILD_TESTING=OFF
+;      -DBUILD_SHARED_LIBS=ON ; TODO: Validate this
+;      -DCMAKE_BUILD_TYPE=Release
+;      -DCMAKE_INSTALL_PREFIX=swift-llbuild/build-shared)
+;     (run cmake --build swift-llbuild/build-shared --config Release -- -j4)
+;     (copy swift-llbuild/build-shared/lib/libllbuild.so dllswift-llbuild.so)))))
+
+; (rule
+;  (target dllllbuild.dll)
+;  (locks swift-llbuild)
+;  (deps
+;   (source_tree swift-llbuild))
+;  (enabled_if
+;   (= %{system} mingw64))
+;  (action
+;   (no-infer
+;    (progn
+;     (run
+;      cmake
+;      -S
+;      swift-llbuild
+;      -B
+;      swift-llbuild/build-shared
+;      -G
+;      "Unix Makefiles"
+;      -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc
+;      -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++
+;      "-DCMAKE_SYSTEM_NAME=Windows"
+;      "-DCMAKE_CXX_FLAGS=-Wno-unused-but-set-variable -Wno-unused-variable"
+;      -DBUILD_TESTING=OFF
+;      -DCMAKE_SHARED_LIBRARY_PREFIX_CXX=lib
+;      -DBUILD_SHARED_LIBS=ON ; TODO: Validate this
+;      -DCMAKE_BUILD_TYPE=Release
+;      -DCMAKE_INSTALL_PREFIX=swift-llbuild/build-shared)
+;     (run cmake --build swift-llbuild/build-shared --config Release -- -j4)
+;     (copy swift-llbuild/build-shared/bin/libllbuild.dll dllllbuild.dll)))))
+
+(subdir
+ swift-llbuild/lib
+ (dirs :standard \ Evo))
+
+(data_only_dirs node_modules)

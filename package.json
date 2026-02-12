@@ -1,0 +1,49 @@
+{
+  "name": "@grain/libllbuild",
+  "version": "6.1.1",
+  "description": "Libllbuild packaged for OCaml.",
+  "author": "Jake Follest",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "ocaml": ">= 5.0 < 5.4.0",
+    "@opam/conf-cmake": "grain-lang/cmake:esy.json#033cab656dc71a6488b3c1ca6ea45099f794bd03",
+    "@opam/dune": ">= 3.0.0",
+    "@opam/dune-configurator": ">= 3.0.0"
+  },
+  "devDependencies": {
+    "@opam/ocamlformat": "0.27.0",
+    "@opam/ocaml-lsp-server": "> 1.9.1 < 2.0.0"
+  },
+  "resolutions": {
+    "@opam/ocp-indent": "1.7.0",
+    "@opam/ocamlfind": "1.9.8"
+  },
+  "esy": {
+    "build": [
+      "dune build -p libllbuild -j 4"
+    ],
+    "buildEnv": {
+      "PATH": "#{os == 'windows' ? '/usr/x86_64-w64-mingw32/sys-root/mingw/bin' : '' : $PATH }"
+    },
+    "exportedEnv": {
+      "PATH": {
+        "val": "#{os == 'windows' ? '/usr/x86_64-w64-mingw32/sys-root/mingw/bin' : '' : $PATH }",
+        "scope": "global"
+      }
+    }
+  },
+  "installConfig": {
+    "pnp": false
+  },
+  "scripts": {
+    "test": "esy b dune runtest --display=short",
+    "format": "dune build @fmt --auto-promote"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "llbuild",
+    "ocaml"
+  ]
+}
