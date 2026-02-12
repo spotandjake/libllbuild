@@ -1,0 +1,6 @@
+[submodule "binaryen"]
+	path = binaryen
+	url = https://github.com/spotandjake/binaryen
+[submodule "swift-llbuild"]
+	path = swift-llbuild
+	url = https://github.com/swiftlang/swift-llbuild
